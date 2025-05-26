@@ -1,6 +1,8 @@
 import functions_framework
 from google.cloud import storage
 from datetime import datetime
+import os
+from dotenv import load_dotenv
 
 # Triggered by a change in a storage bucket
 @functions_framework.cloud_event
@@ -31,7 +33,9 @@ def gcs_product_order(cloud_event):
         return
     
     # List of folders to exclude
-    EXCLUDED_FOLDERS = ["product_order", "contracts"]
+    load_dotenv()
+    excluded_folders_env = os.getenv("EXCLUDED_FOLDERS", "product_order,contracts")
+    EXCLUDED_FOLDERS = [folder.strip() for folder in excluded_folders_env.split(",") if folder.strip()]
 
     # Skip files if any excluded folder is in the path
     path_folders = name.split('/')[:-1]  # all folders before the filename
