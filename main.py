@@ -2,22 +2,6 @@ import functions_framework
 from google.cloud import storage
 from datetime import datetime
 
-def move_blob(bucket_name, source_blob_name, destination_blob_name):
-    """Moves a blob from one bucket to another."""
-    storage_client = storage.Client()
-    source_bucket = storage_client.bucket(bucket_name)
-    source_blob = source_bucket.blob(source_blob_name)
-
-    # Copy the blob to the new location
-    destination_bucket = storage_client.bucket(bucket_name)
-    # destination_blob = destination_bucket.blob(destination_blob_name)
-    destination_bucket.copy_blob(source_blob, destination_bucket, destination_blob_name)
-
-    # Delete the original blob
-    source_blob.delete()
-
-    print(f"Blob {source_blob_name} in bucket {bucket_name} moved to {destination_blob_name}.")
-
 # Triggered by a change in a storage bucket
 @functions_framework.cloud_event
 def gcs_product_order(cloud_event):
@@ -57,9 +41,9 @@ def gcs_product_order(cloud_event):
             return
     
     # Initialize GCS client
-    # client = storage.Client()
-    # bucket = client.bucket(bucket)
-    # source_blob = bucket.blob(name)
+    client = storage.Client()
+    bucket = client.bucket(bucket)
+    source_blob = bucket.blob(name)
 
     # Split path and construct processed folder path
     parts = name.split('/')
@@ -81,9 +65,8 @@ def gcs_product_order(cloud_event):
     destination_blob_name = f"{processed_path}/{new_filename}"
 
     # Copy then delete (simulate move)
-    # bucket.copy_blob(source_blob, bucket, destination_blob_name)
-    # source_blob.delete()
-    move_blob(bucket, name, destination_blob_name)
+    bucket.copy_blob(source_blob, bucket, destination_blob_name)
+    source_blob.delete()
 
     print(f"✅ Moved file from '{name}' to '{destination_blob_name}'")
 
